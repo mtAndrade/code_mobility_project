@@ -51,6 +51,10 @@ tar = tarfile.open("Shared/srv_file.tar.gz", "r:gz")
 tar.extractall("Shared")
 tar.close()
 
+# Depois de recer os arquivos e extrair eles na pasta Shared.
+# Vamos precisar de um script que reconhece qual o tipo do arquivo aqui
+# Algo do tipo? language = find_language(path_of_extracted_files)
+
 print("Call container")
 client = docker.from_env()
 
@@ -72,3 +76,7 @@ for cmd in cmds:
     exit_code, output = container.exec_run(cmd)
 
 print(output)
+
+#Aqui é preciso retornar pro cliente o resultado do output
+
+# #
