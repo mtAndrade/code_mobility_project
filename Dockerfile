@@ -1,3 +1,3 @@
-FROM ubuntu
+FROM gcc:4.9
 
-ADD Shared /mnt/shared
+ADD Shared .
