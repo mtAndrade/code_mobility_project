@@ -4,6 +4,21 @@ import docker
 import tarfile
 import zipfile
 
+# import subprocess
+
+def find_language(path):
+    dir_files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    for f in dir_files:
+        filename, file_extension = os.path.splitext(f)
+        if(file_extension == '.py'):
+            return 'python'
+        else: 
+            if(file_extension == '.java'):
+                return 'java'
+            else: 
+                if(file_extension == '.c'):
+                    return 'c'
+    return -1
 
 def extract_file(path, to_directory='.'):
     if path.endswith('.zip'):
@@ -26,7 +41,7 @@ def extract_file(path, to_directory='.'):
         os.chdir(cwd)
 
 HOST = ''
-PORT = 9000
+PORT = 9001
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
@@ -54,6 +69,9 @@ tar.close()
 # Depois de recer os arquivos e extrair eles na pasta Shared.
 # Vamos precisar de um script que reconhece qual o tipo do arquivo aqui
 # Algo do tipo? language = find_language(path_of_extracted_files)
+language = find_language('./Shared')
+if (language == -1):
+    print("Error -- the language could not be identified")
 
 print("Call container")
 client = docker.from_env()
@@ -65,18 +83,21 @@ container = client.containers.create(image,
                                      stdin_open=True,
                                      auto_remove=True)
 container.start()
+
+# List = open("filename.txt").readlines() # pra pegar todos os comandos no arquivo cmd.txt de uma vez
 cmds = list()
-cmds.append("gcc -Wall program.c -o hello")
+cmds.append("gcc -Wall Shared/program.c -o hello")
 cmds.append("./hello")
 
 exit_code = ""
-output = ""
+output = []
 
 for cmd in cmds:
     exit_code, output = container.exec_run(cmd)
+    # output = subprocess.check_output(cmd.split())
 
 print(output)
 
-#Aqui é preciso retornar pro cliente o resultado do output
-
-# #
+# retorno do resultado para o cliente usando a mesma conexão
+connection.sendall(output)
+connection.close()

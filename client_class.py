@@ -14,7 +14,6 @@ class Client(object):
         self._con.sendall(  (len(data))) # Send the length as a fixed size message
         self._con.sendall(data)
 
-
         # Get Acknowledgement
         self._con.recv(1) # Just 1 byte
 
