@@ -4,6 +4,24 @@ import docker
 import tarfile
 import zipfile
 
+def find_language(path):
+    dir_files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    for f in dir_files:
+        filename, file_extension = os.path.splitext(f)
+        if file_extension == '.py':
+            return 'Python'
+        else:
+            if file_extension == '.java':
+                return 'Java'
+            else:
+                if file_extension == '.c':
+                    return 'C'
+    return -1
+
+def delete_files(path):
+    filelist = [f for f in os.listdir(path)]
+    for f in filelist:
+        os.remove(os.path.join(path, f))
 
 def extract_file(path, to_directory='.'):
     if path.endswith('.zip'):
@@ -26,7 +44,7 @@ def extract_file(path, to_directory='.'):
         os.chdir(cwd)
 
 HOST = ''
-PORT = 9000
+PORT = 9001
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((HOST, PORT))
@@ -48,35 +66,35 @@ with connection:
 
 print("Extract on server")
 tar = tarfile.open("Shared/srv_file.tar.gz", "r:gz")
-tar.extractall("Shared")
+tar.extractall("./Shared")
+
+language = find_language('./Shared')
+if language == -1:
+    print("Error -- the language could not be identified")
+
+tar.extractall("Languages/"+language+"/Shared")
 tar.close()
 
-# Depois de recer os arquivos e extrair eles na pasta Shared.
-# Vamos precisar de um script que reconhece qual o tipo do arquivo aqui
-# Algo do tipo? language = find_language(path_of_extracted_files)
-
+print(language)
 print("Call container")
 client = docker.from_env()
 
-image, json = client.images.build(path=".", tag="sd-project-img")
+image, json = client.images.build(path="../SdProject/Languages/"+language, tag="sd-project-img")
 
 container = client.containers.create(image,
                                      #name="SdProject",
                                      stdin_open=True,
                                      auto_remove=True)
 container.start()
-cmds = list()
-cmds.append("gcc -Wall program.c -o hello")
-cmds.append("./hello")
 
+cmds = open("Languages/"+language+"/Shared/cmds.txt").readlines()
 exit_code = ""
 output = ""
+
+delete_files("Shared")
+delete_files("Languages/"+language+"/Shared")
 
 for cmd in cmds:
     exit_code, output = container.exec_run(cmd)
 
 print(output)
-
-#Aqui é preciso retornar pro cliente o resultado do output
-
-# #

@@ -1,0 +1,2 @@
+gcc -Wall program.c -o hello
+./hello
