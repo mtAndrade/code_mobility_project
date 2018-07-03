@@ -89,12 +89,13 @@ container.start()
 
 cmds = open("Languages/"+language+"/Shared/cmds.txt").readlines()
 exit_code = ""
-output = ""
+output = []
 
 delete_files("Shared")
 delete_files("Languages/"+language+"/Shared")
 
 for cmd in cmds:
     exit_code, output = container.exec_run(cmd)
+    # output = subprocess.check_output(cmd.split())
 
 print(output)
